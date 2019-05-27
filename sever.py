@@ -6,15 +6,25 @@ import sys
 import pyaudio
 import time
 def check_ip(ipAd):
-    with open('pickle_example.pickle', 'rb') as file:
-        ipdict = pickle.load(file)    
-    if ipAd in ipdict.keys():
-        ipdict[ipAd]+=1    
-    else:
-        ipdict[ipAd] = 0
-    with open('pickle_example.pickle', 'wb') as file:
-        pickle.dump(ipdict, file)
-    print(ipdict)
+    try :
+        with open('pickle_example.pickle', 'rb') as file:
+            ipdict = pickle.load(file)    
+        if ipAd in ipdict.keys():
+            ipdict[ipAd]+=1    
+        else:
+            ipdict[ipAd] = 0
+
+        with open('pickle_example.pickle', 'wb') as file:
+            pickle.dump(ipdict, file)
+            print(ipdict)
+    except :   
+        with open('pickle_example.pickle', 'wb') as file:
+            ipdict = {}
+            ipdict[ipAd] = 0
+            print(ipdict)
+            pickle.dump(ipdict,file)
+            print("make the pickle file")
+
     return ipdict[ipAd] > 4000000000
 
 
@@ -26,7 +36,7 @@ def recor():
     FORMAT = pyaudio.paInt16
     CHANNELS = 1
     RATE = 44100
-    CHUNK = 2048  
+    CHUNK = 1024  
     stream = pyaudio.PyAudio().open(format=FORMAT, channels=CHANNELS,
 
                     rate=RATE, input=True,
@@ -62,8 +72,8 @@ if chc == 480:
 else:
     make_720p()
 
-TCP_IP = '0.0.0.0'
-TCP_PORT = 12345
+TCP_IP = 'localhost'
+TCP_PORT = 6000
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
   
@@ -82,7 +92,7 @@ if check_ip(addr[0]):
     conn.shutdown(socket.SHUT_RDWR)
     sys.exit("some error message")
 strea = recor()
-
+print(f"the ret is {ret}")
 print(addr)
 conn.send("start".encode())
 while ret:

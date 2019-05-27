@@ -21,7 +21,7 @@ RECORD_SECONDS = 0.015
 
 TCP_IP = 'localhost'
 
-TCP_PORT = 12345
+TCP_PORT = 6000
 
 sock = socket.socket()
 sock.connect((TCP_IP, TCP_PORT))
@@ -36,7 +36,7 @@ dat = sock.recv(50).decode()
 
 
 
-
+print (f"get!!! {dat}")
 
 
 try:

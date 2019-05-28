@@ -19,8 +19,8 @@ RATE = 44100
 CHUNK = 2048
 RECORD_SECONDS = 0.015
 
-#TCP_IP = '192.168.2.42'
-TCP_IP = 'localhost'
+TCP_IP = '192.168.2.42'
+#TCP_IP = 'localhost'
 TCP_PORT = 6000
 
 

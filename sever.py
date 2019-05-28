@@ -1,4 +1,4 @@
-import socket
+import socket,threading
 import cv2
 import numpy
 import pickle
@@ -65,27 +65,31 @@ def make_480p():
     capture.set(3, 640)
     capture.set(4, 480)
 def open_new_socket(conn,addr,num_of_client):
-    TCP_IP = 'localhost'
-    TCP_PORT = 6000+num_of_client
-    new_port =str(TCP_IP) 
-    conn.send(new_port.encode()) #send the new port 
     
+    TCP_IP = ''
+    TCP_PORT = 6000+(num_of_client)
+    new_port =str(TCP_PORT) 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
+    print(TCP_PORT)
     s.bind((TCP_IP, TCP_PORT))
     s.listen(True)
+    conn.send(new_port.encode()) #send the new port 
     conn, addr = s.accept()
+    print("complete!!!")
     return conn,addr
     
-def serve_the_client(con,adr,num_of_client):
+def serve_the_client(conn,addr,num_of_client):
     if check_ip(addr[0]):
         conn.send("request too frequent".encode())    
         conn.shutdown(socket.SHUT_RDWR)
         sys.exit("some error message")#can be removed
     else:
-        conn,addr = open_new_socket(con,adr,num_of_client) 
+        conn,addr = open_new_socket(conn,addr,num_of_client) 
         strea = recor()
         print(f"the client addr is {addr}")
         conn.send("start".encode())
+        ret, frame = capture.read()
+        encode_param = [int(cv2.IMWRITE_JPEG_QUALITY),90]
         while ret:
             if conn.recv(5).decode() == "start":
                 sendt = time.time()
@@ -105,12 +109,12 @@ def serve_the_client(con,adr,num_of_client):
             
             if conn.recv(2).decode() == "ok":
                 rtt_t = time.time() - sendt
-                print('RTT time: {} seconds'.format(rtt_t), end="\r")
+              #  print('RTT time: {} seconds'.format(rtt_t), end="\r")
             
             cv2.waitKey(20)
             ret, frame = capture.read()
 
-        #conn.close()
+        conn.close()
         cv2.destroyAllWindows()
 
 
@@ -118,23 +122,25 @@ def serve_the_client(con,adr,num_of_client):
         
     ret, frame = capture.read()
     encode_param = [int(cv2.IMWRITE_JPEG_QUALITY),90]
-def main(): 
-    capture = cv2.VideoCapture(0)
-    chc = int(input("輸入希望像素(如 480, 720):"))
-    num_of_client = 0
-    if chc == 480:
-        make_480p()
-    else:
-        make_720p()
+#def main(): 
+capture = cv2.VideoCapture(0)
+chc = int(input("輸入希望像素(如 480, 720):"))
+num_of_client = 0
+if chc == 480:
+    make_480p()
+else:
+    make_720p()
 
-    while(True):
-        TCP_IP = 'localhost'
-        TCP_PORT = 6000
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
-        s.bind((TCP_IP, TCP_PORT))
-        s.listen(True)
-        #get a client    
-        conn, addr = s.accept()
-
-        serve_the_client(conn,addr,++num_of_client)
-
+TCP_IP = ''
+TCP_PORT = 6000
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
+s.bind((TCP_IP, TCP_PORT))
+while(True):
+    s.listen(True)
+    #get a client    
+    conn, addr = s.accept()
+    print(conn,addr)
+    num_of_client+=1
+    threading.Thread(target = serve_the_client,args =(conn,addr,num_of_client),name= 'thread-'+str(num_of_client)).start()    
+  
+    print("finish threads: %s",num_of_client)

@@ -19,13 +19,18 @@ RATE = 44100
 CHUNK = 2048
 RECORD_SECONDS = 0.015
 
-TCP_IP = '192.168.2.42'
-
+#TCP_IP = '192.168.2.42'
+TCP_IP = 'localhost'
 TCP_PORT = 6000
+
+
 
 sock = socket.socket()
 sock.connect((TCP_IP, TCP_PORT))
+new_port = sock.recv(50).decode()
+print(new_port)
 
+'''
 audio = pyaudio.PyAudio()
 
 stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, output=True, frames_per_buffer=CHUNK)
@@ -57,3 +62,4 @@ except Exception:
 
 sock.close()
 cv2.destroyAllWindows()
+'''

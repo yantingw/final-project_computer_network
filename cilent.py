@@ -20,8 +20,9 @@ CHUNK = 2048
 RECORD_SECONDS = 0.015
 
 TCP_IP = '192.168.2.42'
+print(TCP_IP)
 #TCP_IP = 'localhost'
-TCP_PORT = 6000
+TCP_PORT = 8000
 
 
 

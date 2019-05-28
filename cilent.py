@@ -20,8 +20,6 @@ CHUNK = 2048
 RECORD_SECONDS = 0.015
 
 TCP_IP = '192.168.2.42'
-
-print(TCP_IP)
 #TCP_IP = 'localhost'
 TCP_PORT = 6000
 
@@ -30,9 +28,12 @@ TCP_PORT = 6000
 sock = socket.socket()
 sock.connect((TCP_IP, TCP_PORT))
 print("connect build!!!")
-new_port = sock.recv().decode()
+new_port =int( sock.recv(50).decode())
 print(new_port)
-
+#build a new connection
+sock.close()
+sock = socket.socket()
+sock.connect((TCP_IP, new_port))
 
 audio = pyaudio.PyAudio()
 
@@ -54,7 +55,7 @@ try:
         length = recvall(sock,16)
         stringData = recvall(sock, int(length))
         data = numpy.fromstring(stringData, dtype='uint8')
-        decimg=cv2.imdecode(data,1)
+        decimg=cv2.imdecode(data,1)###dat
         cv2.imshow('CLIENT2',decimg)
         
         if cv2.waitKey(1) & 0xFF == ord('q'):

@@ -5,6 +5,7 @@ import pickle
 import sys
 import pyaudio
 import time
+
 def check_ip(ipAd):
     try :
         with open('pickle_example.pickle', 'rb') as file:
@@ -63,61 +64,77 @@ def make_720p():
 def make_480p():
     capture.set(3, 640)
     capture.set(4, 480)
-
-capture = cv2.VideoCapture(0)
-chc = int(input("輸入希望像素(如 480, 720):"))
-
-if chc == 480:
-    make_480p()
-else:
-    make_720p()
-
-TCP_IP = 'localhost'
-TCP_PORT = 6000
-
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-  
-s.bind((TCP_IP, TCP_PORT))
-s.listen(True)
+def open_new_socket(conn,addr,num_of_client):
+    TCP_IP = 'localhost'
+    TCP_PORT = 6000+num_of_client
+    new_port =str(TCP_IP) 
+    conn.send(new_port.encode()) #send the new port 
     
-
-ret, frame = capture.read()
-encode_param = [int(cv2.IMWRITE_JPEG_QUALITY),90]
-
-
-conn, addr = s.accept()
-
-if check_ip(addr[0]):
-    conn.send("request too frequent".encode())    
-    conn.shutdown(socket.SHUT_RDWR)
-    sys.exit("some error message")
-strea = recor()
-print(f"the ret is {ret}")
-print(addr)
-conn.send("start".encode())
-while ret:
-    if conn.recv(5).decode() == "start":
-        sendt = time.time()
-    conn.send(strea.read(2048))
-    result, imgencode = cv2.imencode('.jpg', frame, encode_param)
-    data = numpy.array(imgencode)
-    stringData = data.tostring() 
-      
-    conn.send(str(len(stringData)).ljust(16).encode())
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
+    s.bind((TCP_IP, TCP_PORT))
+    s.listen(True)
+    conn, addr = s.accept()
+    return conn,addr
     
-    conn.send(stringData)
-    
-    #decimg = cv2.imdecode(data,1)
-    
+def serve_the_client(con,adr,num_of_client):
+    if check_ip(addr[0]):
+        conn.send("request too frequent".encode())    
+        conn.shutdown(socket.SHUT_RDWR)
+        sys.exit("some error message")#can be removed
+    else:
+        conn,addr = open_new_socket(con,adr,num_of_client) 
+        strea = recor()
+        print(f"the client addr is {addr}")
+        conn.send("start".encode())
+        while ret:
+            if conn.recv(5).decode() == "start":
+                sendt = time.time()
+            conn.send(strea.read(2048))
+            result, imgencode = cv2.imencode('.jpg', frame, encode_param)
+            data = numpy.array(imgencode)
+            stringData = data.tostring() 
+            
+            conn.send(str(len(stringData)).ljust(16).encode())
+            
+            conn.send(stringData)
+            
+            #decimg = cv2.imdecode(data,1)
+            
 
-    #"""cv2.imshow('SERVER2',decimg)"""
-    
-    if conn.recv(2).decode() == "ok":
-        rtt_t = time.time() - sendt
-        print('RTT time: {} seconds'.format(rtt_t), end="\r")
-    
-    cv2.waitKey(20)
+            #"""cv2.imshow('SERVER2',decimg)"""
+            
+            if conn.recv(2).decode() == "ok":
+                rtt_t = time.time() - sendt
+                print('RTT time: {} seconds'.format(rtt_t), end="\r")
+            
+            cv2.waitKey(20)
+            ret, frame = capture.read()
+
+        #conn.close()
+        cv2.destroyAllWindows()
+
+
+
+        
     ret, frame = capture.read()
+    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY),90]
+def main(): 
+    capture = cv2.VideoCapture(0)
+    chc = int(input("輸入希望像素(如 480, 720):"))
+    num_of_client = 0
+    if chc == 480:
+        make_480p()
+    else:
+        make_720p()
 
-#conn.close()
-cv2.destroyAllWindows()
+    while(True):
+        TCP_IP = 'localhost'
+        TCP_PORT = 6000
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
+        s.bind((TCP_IP, TCP_PORT))
+        s.listen(True)
+        #get a client    
+        conn, addr = s.accept()
+
+        serve_the_client(conn,addr,++num_of_client)
+

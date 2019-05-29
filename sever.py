@@ -5,7 +5,15 @@ import pickle
 import sys
 import pyaudio
 import time
+with open('pickle_example.pickle', 'rb') as file:
+        ipdict = pickle.load(file)    
+        for ipAd in ipdict.keys():
+            ipdict[ipAd]=0    
 
+        with open('pickle_example.pickle', 'wb') as file:
+            pickle.dump(ipdict, file)
+            print(ipdict)
+            file.close()
 def check_ip(ipAd):
     try :
         with open('pickle_example.pickle', 'rb') as file:

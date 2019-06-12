@@ -1,10 +1,20 @@
-import socket
+# -*- coding: utf-8 -*-
+"""
+Created on Wed May 29 21:00:23 2019
+
+@author: YanTing
+"""
+
+
+import socket,threading
 import cv2
 import numpy
 import pickle
 import sys
 import pyaudio
 import time
+
+#%%
 def check_ip(ipAd):
     try :
         with open('pickle_example.pickle', 'rb') as file:
@@ -63,61 +73,101 @@ def make_720p():
 def make_480p():
     capture.set(3, 640)
     capture.set(4, 480)
+def open_new_socket(conn,addr,num_of_client):
+    
+    TCP_PORT = 6000+(num_of_client)
+    new_port =str(TCP_PORT) 
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
+    print(TCP_PORT)
+    s.bind((TCP_IP, TCP_PORT))
+    s.listen(True)
+    conn.send(new_port.encode()) #send the new port 
+    conn, addr = s.accept()
+    print("complete!!!")
+    return conn,addr
+    
+def serve_the_client(conn,addr,num_of_client):
+
+    if check_ip(addr[0]):
+        conn.send("request too frequent".encode())    
+        conn.shutdown(socket.SHUT_RDWR)
+        sys.exit("some error message")#can be removed
+    else:
+        print("nice")
+        conn,addr = open_new_socket(conn,addr,num_of_client) 
+        strea = recor()
+        print(f"the client addr is {addr}")
+        conn.send("start".encode())
+        ret, frame = capture.read()
+        encode_param = [int(cv2.IMWRITE_JPEG_QUALITY),90]
+        print(ret)
+        while ret:
+            if conn.recv(5).decode() == "start":
+                sendt = time.time()
+            conn.send(strea.read(2048))
+            result, imgencode = cv2.imencode('.jpg', frame, encode_param)
+            data = numpy.array(imgencode)
+            stringData = data.tostring() 
+            print(len(stringData))
+            conn.send(str(len(stringData)).ljust(16).encode('utf-8'))
+            print(str(len(stringData)).encode('utf-8'))
+            conn.send(stringData)
+            
+            #decimg = cv2.imdecode(data,1)
+            
+
+            #"""cv2.imshow('SERVER2',decimg)"""
+            
+            if conn.recv(2).decode() == "ok":
+                rtt_t = time.time() - sendt
+              
+                print('RTT time: {} seconds'.format(rtt_t), end="\r")
+            
+            cv2.waitKey(20)
+            ret, frame = capture.read()
+
+        conn.close()
+        cv2.destroyAllWindows()
+
+
+
+        
+    ret, frame = capture.read()
+    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY),90]
+#def main(): 
+
+TCP_IP = '192.168.0.102'
+with open('pickle_example.pickle', 'rb') as file:
+        ipdict = pickle.load(file)    
+        for ipAd in ipdict.keys():
+            ipdict[ipAd]=0    
+
+        with open('pickle_example.pickle', 'wb') as file:
+            pickle.dump(ipdict, file)
+            print(ipdict)
+            file.close()
 
 capture = cv2.VideoCapture(0)
+print(capture)
 chc = int(input("輸入希望像素(如 480, 720):"))
 
+
+num_of_client = 0
 if chc == 480:
     make_480p()
 else:
     make_720p()
 
-TCP_IP = 'localhost'
+#TCP_IP = ''
 TCP_PORT = 6000
-
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-  
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
 s.bind((TCP_IP, TCP_PORT))
-s.listen(True)
-    
-
-ret, frame = capture.read()
-encode_param = [int(cv2.IMWRITE_JPEG_QUALITY),90]
-
-
-conn, addr = s.accept()
-
-if check_ip(addr[0]):
-    conn.send("request too frequent".encode())    
-    conn.shutdown(socket.SHUT_RDWR)
-    sys.exit("some error message")
-strea = recor()
-print(f"the ret is {ret}")
-print(addr)
-conn.send("start".encode())
-while ret:
-    if conn.recv(5).decode() == "start":
-        sendt = time.time()
-    conn.send(strea.read(2048))
-    result, imgencode = cv2.imencode('.jpg', frame, encode_param)
-    data = numpy.array(imgencode)
-    stringData = data.tostring() 
-      
-    conn.send(str(len(stringData)).ljust(16).encode())
-    
-    conn.send(stringData)
-    
-    #decimg = cv2.imdecode(data,1)
-    
-
-    #"""cv2.imshow('SERVER2',decimg)"""
-    
-    if conn.recv(2).decode() == "ok":
-        rtt_t = time.time() - sendt
-        print('RTT time: {} seconds'.format(rtt_t), end="\r")
-    
-    cv2.waitKey(20)
-    ret, frame = capture.read()
-
-#conn.close()
-cv2.destroyAllWindows()
+while(True):
+    s.listen(True)
+    #get a client    
+    conn, addr = s.accept()
+    print(conn,addr)
+    num_of_client+=1
+    threading.Thread(target = serve_the_client,args =(conn,addr,num_of_client),name= 'thread-'+str(num_of_client)).start()    
+  
+    print("finish threads: %s",num_of_client)

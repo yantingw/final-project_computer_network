@@ -5,7 +5,7 @@ import pickle
 import sys
 import pyaudio
 import time
-TCP_IP = '10.129.207.29'
+TCP_IP = '192.168.2.42'
 
 
 def check_ip(ipAd):

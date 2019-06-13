@@ -20,7 +20,7 @@ RATE = 44100
 CHUNK = 2048
 RECORD_SECONDS = 0.015
 
-TCP_IP = '10.129.207.29'
+TCP_IP = '192.168.2.42'#'10.129.207.29'
 #TCP_IP = 'localhost'
 TCP_PORT = 6000
 
@@ -52,7 +52,7 @@ while 1:
     stringData = recvall(sock, int(length)) 
     data = numpy.fromstring(stringData, dtype='uint8')
     decimg=cv2.imdecode(data,1)###dat
-    decimg =cv2.resize(decimg,(1080,720))
+    decimg =cv2.resize(decimg,(360,240))
     cv2.imshow("vedio",decimg)
     
     if cv2.waitKey(1) & 0xFF == ord('q'):

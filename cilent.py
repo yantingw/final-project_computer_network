@@ -2,7 +2,6 @@ import socket
 import cv2
 import numpy
 import sys
-import keyboard
 import pyaudio
 
 def recvall(sock, count):
@@ -57,7 +56,7 @@ while 1:
     
     if cv2.waitKey(1) & 0xFF == ord('q'):
          break
-    #if keyboard.is_pressed('space'):
+    
     if cv2.waitKey(1) & 0xFF == ord('c'):
         cv2.destroyAllWindows()
         #mess = raw_input("輸入欲更改的像素:")

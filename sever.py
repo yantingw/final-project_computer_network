@@ -31,7 +31,20 @@ def check_ip(ipAd):
             print("make the pickle file")
 
     return ipdict[ipAd] > 100
+def refresh_record():
+    while true:
+        try :
+            with open('pickle_example.pickle', 'rb') as file: 
+                ipdict = pickle.load(file)    
+                for ipAd in ipdict.keys():
+                    ipdict[ipAd]=0    
 
+            with open('pickle_example.pickle', 'wb') as file:
+                    pickle.dump(ipdict, file)
+                    file.close()    
+        time.sleep( 5*60 )
+
+    
 
 def callback(in_data, frame_count, time_info, status):
     conn.send(in_data)   
@@ -55,7 +68,6 @@ def recor():
 
 
  
-
 
 def make_1080p():
     capture.set(3, 1920)
@@ -160,16 +172,6 @@ def serve_the_client(conn,addr,num_of_client):
     encode_param = [int(cv2.IMWRITE_JPEG_QUALITY),90]
 #def main(): 
 
-with open('pickle_example.pickle', 'rb') as file:
-        ipdict = pickle.load(file)    
-        for ipAd in ipdict.keys():
-            ipdict[ipAd]=0    
-
-        with open('pickle_example.pickle', 'wb') as file:
-            pickle.dump(ipdict, file)
-            print(ipdict)
-            file.close()
-
 capture = cv2.VideoCapture(0)
 chc = int(input("輸入希望像素(如 480, 720):"))
 num_of_client = 0
@@ -177,7 +179,7 @@ if chc == 480:
     make_480p()
 else:
     make_720p()
-
+threading.Thread(target = refresh_record,name= 'thread-refresh_record').start()    
 TCP_PORT = 6000
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
 s.bind((TCP_IP, TCP_PORT))
@@ -188,5 +190,5 @@ while(True):
     print(conn,addr)
     num_of_client+=1
     threading.Thread(target = serve_the_client,args =(conn,addr,num_of_client),name= 'thread-'+str(num_of_client)).start()    
-  
+    
     print("finish threads: %s",num_of_client)

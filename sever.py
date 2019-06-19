@@ -113,25 +113,14 @@ def serve_the_client(conn,addr,num_of_client):
         while ret:
             if current_pixel == 480:
                 frame=cv2.resize(frame, (60,40))
-    #            print(f"send the diffrent img :   {frame.shape}")
-
             if conn.recv(5).decode() == "start":
                 sendt = time.time()
             conn.send(strea.read(2048))
-            result, imgencode = cv2.imencode('.jpg', frame, encode_param)
-     #       print(f"send orgin img :   {imgencode.shape}")           
+            result, imgencode = cv2.imencode('.jpg', frame, encode_param) 
             data = numpy.array(imgencode)
-            stringData = data.tostring() 
-            
-                
-            conn.send(str(len(stringData)).ljust(16).encode())
-            
+            stringData = data.tostring()                
+            conn.send(str(len(stringData)).ljust(16).encode()
             conn.send(stringData)
-            
-
-                        
-
-            #"""cv2.imshow('SERVER2',decimg)"""
             mess= conn.recv(3).decode()
             if mess == "ok!":
                 rtt_t = time.time() - sendt
@@ -142,26 +131,20 @@ def serve_the_client(conn,addr,num_of_client):
                 if estimated_rtt > 0.05 :
                     x = int(1080*10/(estimated_rtt*1000))
                     y = int(760*10/(estimated_rtt*1000))
-                else :
+                else : 
                     x = 1080
                     y = 760
-
-                print('RTT time: {} ms'.format(int(estimated_rtt*1000)), end="\r")
+                print('RTT time: {} ms'.format(int(estimated_rtt*1000)), end="\r") #print current rtt
             else:
-                
                 if mess == "480":
-                    current_pixel=480
-                    print('改變pixel480')
+                    current_pixel=480 # 改變pixel480
                 elif mess == "720":
-                    current_pixel=720
-                    print('改變pixel720')
+                    current_pixel=720 #改變pixel720
                 
                 cv2.waitKey(100)
             ret, frame = capture.read()
             frame=cv2.resize(frame, (x,y))
             print(f"now frame size is {frame.size}.")
-      #      print(ret)
-
         conn.close()
         cv2.destroyAllWindows()
 
